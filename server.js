@@ -1,45 +1,41 @@
 const express = require("express");
-const cors = require("cors");
+const axios = require("axios");
 
 const app = express();
-app.use(cors());
 app.use(express.json());
 
-const API_URL = "https://yoyomedia.in/api/v2";
+// ✅ TEST ROUTE (IMPORTANT)
+app.get("/", (req, res) => {
+  res.send("Server is running ✅");
+});
 
+// 🔥 PLACE ORDER API (your main logic)
 app.post("/order", async (req, res) => {
-  const { apiKey, service, link, quantity } = req.body;
-
   try {
-    const params = new URLSearchParams();
-    params.append("key", apiKey);
-    params.append("action", "add");
-    params.append("service", service);
-    params.append("link", link);
-    params.append("quantity", quantity);
+    const { api_url, api_key, service, link, quantity } = req.body;
 
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
-      },
-      body: params
+    const response = await axios.post(api_url, {
+      key: api_key,
+      action: "add",
+      service: service,
+      link: link,
+      quantity: quantity,
     });
 
-    const data = await response.json();
-
-    console.log("API RESPONSE:", data);
-
-    res.json(data);
-
-  } catch (err) {
-    console.log("ERROR:", err);
-    res.status(500).json({ error: "API failed" });
+    res.json({
+      success: true,
+      data: response.data,
+    });
+  } catch (error) {
+    res.json({
+      success: false,
+      error: error.message,
+    });
   }
 });
 
+// 🚀 START SERVER
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, () => {
   console.log("Server running on port " + PORT);
 });
